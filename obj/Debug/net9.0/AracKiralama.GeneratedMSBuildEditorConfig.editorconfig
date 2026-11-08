@@ -1,0 +1,109 @@
+is_global = true
+build_property.EnableAotAnalyzer = 
+build_property.EnableSingleFileAnalyzer = 
+build_property.EnableTrimAnalyzer = false
+build_property.IncludeAllContentForSelfExtract = 
+build_property.TargetFramework = net9.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = 
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = false
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = browser
+build_property.RootNamespace = AracKiralama
+build_property.RootNamespace = AracKiralama
+build_property.ProjectDir = C:\Users\ealik\AracKiralama\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = false
+build_property.RazorLangVersion = 9.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = C:\Users\ealik\AracKiralama
+build_property._RazorSourceGeneratorDebug = 
+build_property.EffectiveAnalysisLevelStyle = 9.0
+build_property.EnableCodeStyleSeverity = 
+
+[C:/Users/ealik/AracKiralama/App.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/ealik/AracKiralama/Pages/Home.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/ealik/AracKiralama/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/ealik/AracKiralama/Components/AlertBox.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBbGVydEJveC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-le1snu52rk
+
+[C:/Users/ealik/AracKiralama/Components/BookingCard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xCb29raW5nQ2FyZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-441p2snik8
+
+[C:/Users/ealik/AracKiralama/Components/BookingConfirmation.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xCb29raW5nQ29uZmlybWF0aW9uLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-vpa17oxy7a
+
+[C:/Users/ealik/AracKiralama/Components/CarCard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDYXJDYXJkLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-6pzsxxvyy0
+
+[C:/Users/ealik/AracKiralama/Components/CarDetails.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDYXJEZXRhaWxzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-ejitjy9jqa
+
+[C:/Users/ealik/AracKiralama/Components/CarFilterPanel.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDYXJGaWx0ZXJQYW5lbC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-dj454gfr2d
+
+[C:/Users/ealik/AracKiralama/Components/CarList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDYXJMaXN0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-qg4tl4c0kc
+
+[C:/Users/ealik/AracKiralama/Components/CustomerForm.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDdXN0b21lckZvcm0ucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-pijqizeml6
+
+[C:/Users/ealik/AracKiralama/Components/EmptyState.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xFbXB0eVN0YXRlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-41mboe95z6
+
+[C:/Users/ealik/AracKiralama/Components/Icon.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xJY29uLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-b4hmambmds
+
+[C:/Users/ealik/AracKiralama/Components/RentalOptions.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xSZW50YWxPcHRpb25zLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-2xe1fh4yn7
+
+[C:/Users/ealik/AracKiralama/Components/RentalSummary.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xSZW50YWxTdW1tYXJ5LnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-ih09yxptie
+
+[C:/Users/ealik/AracKiralama/Layout/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XE1haW5MYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-te3m46fy2y
+
+[C:/Users/ealik/AracKiralama/Layout/NavMenu.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XE5hdk1lbnUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-6m4bi7767u
+
+[C:/Users/ealik/AracKiralama/Pages/BookingDetail.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQm9va2luZ0RldGFpbC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-4srvv44q8q
+
+[C:/Users/ealik/AracKiralama/Pages/Cars.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2Fycy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-m7x7n7uh1e
+
+[C:/Users/ealik/AracKiralama/Pages/MyBookings.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTXlCb29raW5ncy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-2249s41vq7
+
+[C:/Users/ealik/AracKiralama/Pages/Rent.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVudC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-lpgswnor85

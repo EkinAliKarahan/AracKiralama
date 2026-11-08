@@ -1,0 +1,53 @@
+@implements IDisposable
+@inject BookingService BookingService
+
+<header class="topbar">
+    <div class="topbar-inner">
+        <a class="brand" href="cars" aria-label="AliCar – araç listesine git">
+            <span class="brand-mark" aria-hidden="true"><Icon Name="car" Size="22" /></span>
+            <span class="brand-name">Ali<span>Car</span></span>
+        </a>
+
+        <nav class="nav" aria-label="Ana menü">
+            <NavLink class="nav-link" href="cars" Match="NavLinkMatch.Prefix">
+                <Icon Name="car" />
+                <span>Araçlar</span>
+            </NavLink>
+            <NavLink class="nav-link" href="my-bookings" Match="NavLinkMatch.Prefix">
+                <Icon Name="receipt" />
+                <span>Rezervasyonlarım</span>
+                @if (activeCount > 0)
+                {
+                    <span class="badge" title="Aktif rezervasyon sayısı">
+                        @activeCount<span class="sr-only"> aktif rezervasyon</span>
+                    </span>
+                }
+            </NavLink>
+        </nav>
+    </div>
+</header>
+
+@code {
+    private int activeCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        BookingService.OnChange += HandleBookingsChanged;
+        await RefreshCountAsync();
+    }
+
+    private async Task RefreshCountAsync()
+    {
+        var bookings = await BookingService.GetAllAsync();
+        activeCount = bookings.Count(b =>
+            b.GetStatus(DateTime.Today) is BookingStatus.Upcoming or BookingStatus.Ongoing);
+    }
+
+    private async void HandleBookingsChanged()
+    {
+        await RefreshCountAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose() => BookingService.OnChange -= HandleBookingsChanged;
+}

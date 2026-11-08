@@ -1,0 +1,102 @@
+@* Rezervasyonlarım sayfasındaki tek bir kayıt. İptal isteği EventCallback ile sayfaya iletilir. *@
+<article class="booking status-@status.ToCss()" aria-labelledby="@TitleId">
+    <div class="thumb">
+        <img src="@(Car?.ImageUrl ?? "images/cars/placeholder.svg")" alt="" width="160" height="96" loading="lazy" />
+    </div>
+
+    <div class="info">
+        <div class="top">
+            <h3 id="@TitleId">@(Car?.DisplayName ?? Booking.CarId)</h3>
+            <span class="status">@status.ToLabel()</span>
+        </div>
+        <p class="code"><Icon Name="receipt" Size="15" /> @Booking.Id</p>
+        <dl class="meta">
+            <div>
+                <dt>Tarihler</dt>
+                <dd>@Fmt.Range(Booking.PickupDate, Booking.ReturnDate) <span class="days">(@days gün)</span></dd>
+            </div>
+            <div>
+                <dt>Ek hizmetler</dt>
+                <dd>@(extras.Count == 0 ? "Yok" : string.Join(", ", extras.Select(e => e.Name)))</dd>
+            </div>
+            <div>
+                <dt>Müşteri</dt>
+                <dd>@Booking.CustomerName</dd>
+            </div>
+        </dl>
+    </div>
+
+    <div class="side">
+        <p class="amount">
+            <span class="sr-only">Toplam tutar: </span>@Fmt.Money(Booking.TotalAmount)
+        </p>
+
+        @if (canCancel)
+        {
+            @if (!confirming)
+            {
+                <button type="button" class="btn btn-danger-outline btn-sm" @onclick="() => confirming = true">
+                    <Icon Name="x-circle" Size="16" /> İptal et
+                </button>
+            }
+            else
+            {
+                <div class="confirm" role="group" aria-label="@($"{Booking.Id} iptal onayı")">
+                    <p>İptal edilsin mi?</p>
+                    <div class="confirm-actions">
+                        <button type="button" class="btn btn-danger btn-sm" disabled="@isCancelling" @onclick="ConfirmCancel">
+                            Evet, iptal et
+                        </button>
+                        <button type="button" class="btn btn-ghost btn-sm" disabled="@isCancelling" @onclick="() => confirming = false">
+                            Vazgeç
+                        </button>
+                    </div>
+                </div>
+            }
+        }
+        else if (!Booking.IsCancelled)
+        {
+            <p class="note">Başlamış veya tamamlanmış kiralamalar iptal edilemez.</p>
+        }
+        else if (Booking.CancelledAt is DateTime cancelledAt)
+        {
+            <p class="note">İptal: @Fmt.Timestamp(cancelledAt)</p>
+        }
+
+        <a class="details-link" href="@($"booking/{Booking.Id}")">
+            Detay <span class="sr-only">@Booking.Id</span><Icon Name="arrow-right" Size="15" />
+        </a>
+    </div>
+</article>
+
+@code {
+    [Parameter, EditorRequired] public CarBooking Booking { get; set; } = default!;
+    [Parameter] public Car? Car { get; set; }
+    [Parameter] public EventCallback<CarBooking> OnCancel { get; set; }
+
+    private bool confirming;
+    private bool isCancelling;
+    private int days;
+    private bool canCancel;
+    private BookingStatus status;
+    private IReadOnlyList<ExtraService> extras = Array.Empty<ExtraService>();
+
+    private string TitleId => $"booking-{Booking.Id}";
+
+    protected override void OnParametersSet()
+    {
+        days = RentalRules.CalculateDays(Booking.PickupDate, Booking.ReturnDate);
+        extras = ExtraCatalog.GetByIds(Booking.ExtraIds);
+        status = Booking.GetStatus(DateTime.Today);
+        canCancel = Booking.CanCancel(DateTime.Today);
+        if (!canCancel) confirming = false;
+    }
+
+    private async Task ConfirmCancel()
+    {
+        isCancelling = true;
+        await OnCancel.InvokeAsync(Booking);
+        isCancelling = false;
+        confirming = false;
+    }
+}

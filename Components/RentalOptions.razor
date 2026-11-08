@@ -1,0 +1,137 @@
+@* Tarih seçimi, kiralama gün sayısı ve ek hizmet tercihleri.
+   Bileşen durum tutmaz: değerleri [Parameter] ile alır, değişiklikleri EventCallback ile bildirir. *@
+<div class="options">
+    <section class="card block" aria-labelledby="dates-title">
+        <header class="block-head">
+            <span class="step" aria-hidden="true">1</span>
+            <div>
+                <h2 id="dates-title">Kiralama tarihleri</h2>
+                <p>Teslim alma ve iade günlerini seçin.</p>
+            </div>
+        </header>
+
+        <div class="date-row">
+            <div class="field">
+                <label for="pickup-date"><Icon Name="calendar" Size="16" /> Teslim alma</label>
+                <input id="pickup-date" class="form-control" type="date"
+                       min="@Fmt.ToInputDate(DateTime.Today)"
+                       value="@Fmt.ToInputDate(PickupDate)"
+                       disabled="@Disabled"
+                       aria-invalid="@(PickupInvalid ? "true" : "false")"
+                       aria-describedby="date-feedback"
+                       @onchange="OnPickupChanged" />
+            </div>
+
+            <span class="arrow" aria-hidden="true"><Icon Name="arrow-right" /></span>
+
+            <div class="field">
+                <label for="return-date"><Icon Name="calendar" Size="16" /> İade</label>
+                <input id="return-date" class="form-control" type="date"
+                       min="@Fmt.ToInputDate(PickupDate.AddDays(1))"
+                       value="@Fmt.ToInputDate(ReturnDate)"
+                       disabled="@Disabled"
+                       aria-invalid="@(ReturnInvalid ? "true" : "false")"
+                       aria-describedby="date-feedback"
+                       @onchange="OnReturnChanged" />
+            </div>
+
+            <div class="days @(Days > 0 ? "" : "is-zero")" aria-live="polite">
+                <strong>@Days</strong>
+                <span>gün</span>
+            </div>
+        </div>
+
+        <div id="date-feedback">
+            @if (inputError is not null || DateErrors.Count > 0)
+            {
+                <ul class="date-errors" role="alert">
+                    @if (inputError is not null)
+                    {
+                        <li><Icon Name="alert" Size="16" /> @inputError</li>
+                    }
+                    @foreach (var error in DateErrors)
+                    {
+                        <li><Icon Name="alert" Size="16" /> @error</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="date-ok">
+                    <Icon Name="check-circle" Size="16" />
+                    @Fmt.DateWithDay(PickupDate) teslim, @Fmt.DateWithDay(ReturnDate) iade
+                    · <strong>@Days gün</strong>
+                </p>
+            }
+        </div>
+    </section>
+
+    <section class="card block" aria-labelledby="extras-title">
+        <header class="block-head">
+            <span class="step" aria-hidden="true">2</span>
+            <div>
+                <h2 id="extras-title">Ek hizmetler</h2>
+                <p>İsteğe bağlıdır; ücretler kiralama gün sayısı ile çarpılır.</p>
+            </div>
+        </header>
+
+        <div class="extras" role="group" aria-labelledby="extras-title">
+            @foreach (var extra in Extras)
+            {
+                var selected = SelectedExtraIds.Contains(extra.Id);
+                <label class="extra @(selected ? "is-selected" : "") @(Disabled ? "is-disabled" : "")">
+                    <input type="checkbox" class="extra-input"
+                           checked="@selected" disabled="@Disabled"
+                           @onchange="e => OnExtraToggled.InvokeAsync(new ExtraToggle(extra.Id, e.Value is true))" />
+                    <span class="extra-icon"><Icon Name="@extra.Icon" Size="22" /></span>
+                    <span class="extra-text">
+                        <span class="extra-name">@extra.Name</span>
+                        <span class="extra-desc">@extra.Description</span>
+                    </span>
+                    <span class="extra-price">
+                        +@Fmt.Money(extra.DailyPrice)<small>/gün</small>
+                    </span>
+                    <span class="check" aria-hidden="true"><Icon Name="check" Size="14" StrokeWidth="3" /></span>
+                </label>
+            }
+        </div>
+    </section>
+</div>
+
+@code {
+    [Parameter] public DateTime PickupDate { get; set; }
+    [Parameter] public EventCallback<DateTime> PickupDateChanged { get; set; }
+    [Parameter] public DateTime ReturnDate { get; set; }
+    [Parameter] public EventCallback<DateTime> ReturnDateChanged { get; set; }
+    [Parameter] public int Days { get; set; }
+    [Parameter] public IReadOnlyList<string> DateErrors { get; set; } = Array.Empty<string>();
+
+    [Parameter] public IReadOnlyList<ExtraService> Extras { get; set; } = Array.Empty<ExtraService>();
+    [Parameter] public IReadOnlyCollection<string> SelectedExtraIds { get; set; } = Array.Empty<string>();
+    [Parameter] public EventCallback<ExtraToggle> OnExtraToggled { get; set; }
+
+    [Parameter] public bool Disabled { get; set; }
+
+    private string? inputError;
+
+    private bool PickupInvalid => PickupDate.Date < DateTime.Today;
+    private bool ReturnInvalid => ReturnDate.Date <= PickupDate.Date;
+
+    private Task OnPickupChanged(ChangeEventArgs e) => ParseAndNotify(e, PickupDateChanged, "teslim alma");
+    private Task OnReturnChanged(ChangeEventArgs e) => ParseAndNotify(e, ReturnDateChanged, "iade");
+
+    private async Task ParseAndNotify(ChangeEventArgs e, EventCallback<DateTime> callback, string label)
+    {
+        if (Fmt.TryParseInputDate(e.Value?.ToString(), out var date))
+        {
+            inputError = null;
+            await callback.InvokeAsync(date);
+        }
+        else
+        {
+            inputError = $"Lütfen geçerli bir {label} tarihi seçin.";
+        }
+    }
+
+    public record ExtraToggle(string ExtraId, bool IsSelected);
+}

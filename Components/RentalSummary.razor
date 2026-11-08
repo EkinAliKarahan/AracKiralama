@@ -1,0 +1,115 @@
+@* Günlük ücret, ek hizmetler ve toplam tutarın anlık hesaplandığı özet kartı.
+   Tarih veya hizmet değiştiğinde üst bileşen yeni parametreler gönderir ve tutar yeniden hesaplanır. *@
+<div class="summary card">
+    <h2 class="title">Fiyat özeti</h2>
+
+    <div class="car-mini">
+        <img src="@(Car.ImageUrl ?? "images/cars/placeholder.svg")" alt="" width="96" height="58" />
+        <div>
+            <p class="car-name">@Car.DisplayName</p>
+            <p class="car-meta">@Car.Category · @Car.Transmission · @Car.FuelType</p>
+        </div>
+    </div>
+
+    <dl class="dates">
+        <div>
+            <dt>Teslim alma</dt>
+            <dd>@Fmt.Date(PickupDate)</dd>
+        </div>
+        <div>
+            <dt>İade</dt>
+            <dd>@Fmt.Date(ReturnDate)</dd>
+        </div>
+        <div>
+            <dt>Süre</dt>
+            <dd>@Days gün</dd>
+        </div>
+    </dl>
+
+    <table class="breakdown">
+        <caption class="sr-only">Ücret dökümü</caption>
+        <thead class="sr-only">
+            <tr><th scope="col">Kalem</th><th scope="col">Tutar</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th scope="row">
+                    Araç kirası
+                    <span class="calc">@Fmt.Money(Car.DailyPrice) × @Days gün</span>
+                </th>
+                <td>@Fmt.Money(Car.DailyPrice * Days)</td>
+            </tr>
+            @foreach (var extra in SelectedExtras)
+            {
+                <tr @key="extra.Id" class="extra-row">
+                    <th scope="row">
+                        @extra.Name
+                        <span class="calc">@Fmt.Money(extra.DailyPrice) × @Days gün</span>
+                    </th>
+                    <td>@Fmt.Money(extra.DailyPrice * Days)</td>
+                </tr>
+            }
+            @if (SelectedExtras.Count == 0)
+            {
+                <tr class="muted">
+                    <th scope="row">Ek hizmet seçilmedi</th>
+                    <td>—</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <th scope="row">Günlük toplam</th>
+                <td>@Fmt.Money(dailyTotal)</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="total" aria-live="polite" aria-atomic="true">
+        <span class="total-label">Toplam tutar</span>
+        @* @key ile tutar her değiştiğinde öğe yeniden oluşur ve kısa bir vurgu animasyonu oynar *@
+        <strong class="total-value" @key="total">@Fmt.Money(total)</strong>
+        <span class="formula">@Days gün × (@Fmt.Money(Car.DailyPrice) + @Fmt.Money(extrasDaily) hizmet)</span>
+    </div>
+
+    <button type="button" class="btn btn-primary btn-lg btn-block"
+            disabled="@(!CanComplete || IsFormOpen)"
+            aria-describedby="@(CanComplete ? null : "block-reason")"
+            @onclick="OnCompleteRequested">
+        Rezervasyonu Tamamla
+    </button>
+
+    @if (!CanComplete && !string.IsNullOrEmpty(BlockReason))
+    {
+        <p id="block-reason" class="block-reason"><Icon Name="alert" Size="16" /> @BlockReason</p>
+    }
+    else if (IsFormOpen)
+    {
+        <p class="hint"><Icon Name="info" Size="16" /> Müşteri bilgilerinizi girerek rezervasyonu onaylayın.</p>
+    }
+
+    <p class="fine-print">Fiyatlara KDV dahildir. Bu bir eğitim prototipidir; ödeme alınmaz.</p>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Car Car { get; set; } = default!;
+    [Parameter] public DateTime PickupDate { get; set; }
+    [Parameter] public DateTime ReturnDate { get; set; }
+    [Parameter] public int Days { get; set; }
+    [Parameter] public IReadOnlyList<ExtraService> SelectedExtras { get; set; } = Array.Empty<ExtraService>();
+    [Parameter] public bool CanComplete { get; set; }
+    [Parameter] public string? BlockReason { get; set; }
+    [Parameter] public bool IsFormOpen { get; set; }
+    [Parameter] public EventCallback OnCompleteRequested { get; set; }
+
+    private decimal extrasDaily;
+    private decimal dailyTotal;
+    private decimal total;
+
+    protected override void OnParametersSet()
+    {
+        extrasDaily = RentalRules.ExtrasDailyTotal(SelectedExtras);
+        dailyTotal = Car.DailyPrice + extrasDaily;
+        total = RentalRules.CalculateTotal(Days, Car.DailyPrice, SelectedExtras);
+    }
+}

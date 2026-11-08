@@ -1,0 +1,70 @@
+@page "/cars"
+@inject CarService CarService
+@inject RentalState State
+@inject NavigationManager Nav
+
+<PageTitle>Araçlar · AliCar</PageTitle>
+
+<section class="hero">  <div class="hero-text">
+        <p class="eyebrow">Araç kiralama</p>
+        <h1>Yolculuğunuza uygun aracı seçin</h1>
+        <p class="lead">
+            Ekonomik, SUV, lüks ve minivan seçenekleri arasından filtreleyin; tarihleri ve ek hizmetleri
+            seçtiğiniz anda toplam tutarı görün.
+        </p>
+    </div>
+    @if (cars is not null)
+    {
+        <dl class="stats">
+            <div><dt>Araç</dt><dd>@cars.Count</dd></div>
+            <div><dt>Kategori</dt><dd>@cars.Select(c => c.Category).Distinct().Count()</dd></div>
+            <div><dt>Müsait</dt><dd>@cars.Count(c => c.IsAvailable)</dd></div>
+        </dl>
+    }
+</section>
+
+@if (error is not null)
+{
+    <AlertBox Type="danger" Title="Araçlar yüklenemedi">
+        <p>@error</p>
+        <button type="button" class="btn btn-secondary btn-sm retry" @onclick="LoadAsync">
+            <Icon Name="refresh" Size="16" /> Tekrar dene
+        </button>
+    </AlertBox>
+}
+else
+{
+    <CarList Cars="cars"
+             IsLoading="cars is null"
+             Filter="State.Filter"
+             FilterChanged="State.SetFilter"
+             OnRentRequested="GoToRent" />
+}
+
+@code {
+    private IReadOnlyList<Car>? cars;
+    private string? error;
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        error = null;
+        try
+        {
+            // CarService, cars.json dosyasını HttpClient ile asenkron okur
+            cars = await CarService.GetCarsAsync();
+        }
+        catch (Exception ex)
+        {
+            error = $"cars.json okunurken bir sorun oluştu: {ex.Message}";
+        }
+    }
+
+    private void GoToRent(Car car)
+    {
+        if (!car.IsAvailable) return;
+        State.SelectCar(car); // Seçim scoped servis üzerinden kiralama sayfasına taşınır
+        Nav.NavigateTo($"cars/{car.Id}/rent");
+    }
+}

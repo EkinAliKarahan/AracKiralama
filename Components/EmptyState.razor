@@ -1,0 +1,12 @@
+﻿@* Boş liste / bulunamadı durumları için ortak görünüm *@
+<div class="empty card">
+    <span class="empty-icon"><Icon Name="@IconName" Size="28" /></span>
+    <h2 class="empty-title">@Title</h2>
+    <div class="empty-body">@ChildContent</div>
+</div>
+
+@code {
+    [Parameter] public string IconName { get; set; } = "info";
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

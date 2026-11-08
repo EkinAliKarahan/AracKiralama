@@ -1,0 +1,15 @@
+﻿<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>Sayfa bulunamadı · AliCar</PageTitle>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <EmptyState IconName="alert" Title="Sayfa bulunamadı">
+                <p>Aradığınız adreste bir sayfa yok.</p>
+                <a class="btn btn-primary" href="cars">Araçlara git</a>
+            </EmptyState>
+        </LayoutView>
+    </NotFound>
+</Router>

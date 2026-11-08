@@ -1,0 +1,110 @@
+.back[b-lpgswnor85] { margin-bottom: 1rem; }
+
+.back a[b-lpgswnor85] {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    min-height: 40px;
+    padding: .35rem .2rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.back a:hover[b-lpgswnor85] { text-decoration: underline; }
+
+.loading[b-lpgswnor85] {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: 3rem 0;
+    justify-content: center;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.spinner[b-lpgswnor85] {
+    width: 22px;
+    height: 22px;
+    border: 3px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin-b-lpgswnor85 .7s linear infinite;
+}
+
+@keyframes spin-b-lpgswnor85 { to { transform: rotate(360deg); } }
+
+.page-head[b-lpgswnor85] { margin-bottom: 1.25rem; }
+
+.page-head h1[b-lpgswnor85] {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 800;
+}
+
+.page-head h1 span[b-lpgswnor85] { color: var(--primary); }
+
+.page-head p[b-lpgswnor85] { margin-top: .25rem; color: var(--muted); }
+
+.layout[b-lpgswnor85] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    align-items: start;
+    gap: 1.5rem;
+}
+
+.main[b-lpgswnor85] {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    min-width: 0;
+}
+
+.side[b-lpgswnor85] {
+    position: sticky;
+    top: 88px;
+}
+
+.booked[b-lpgswnor85] { padding: 1rem 1.25rem; }
+
+.booked h2[b-lpgswnor85] {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    margin-bottom: .6rem;
+    font-size: .95rem;
+}
+
+.booked ul[b-lpgswnor85] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.booked li[b-lpgswnor85] {
+    padding: .3rem .7rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface-2);
+    font-size: .85rem;
+    font-weight: 700;
+}
+
+.booked li span[b-lpgswnor85] {
+    margin-left: .3rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: .78rem;
+}
+
+.booked li.is-conflict[b-lpgswnor85] {
+    border-color: var(--danger);
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+@media (max-width: 980px) {
+    .layout[b-lpgswnor85] { grid-template-columns: 1fr; }
+    .side[b-lpgswnor85] { position: static; }
+}

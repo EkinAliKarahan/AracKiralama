@@ -1,0 +1,108 @@
+@* Araç kartlarını ve filtre panelini bir araya getiren liste bileşeni.
+   Veri yukarıdan [Parameter] ile gelir; filtre değişikliği ve araç seçimi EventCallback ile yukarı iletilir. *@
+<div class="car-list">
+    <CarFilterPanel Filter="Filter"
+                    FilterChanged="FilterChanged"
+                    Brands="brands"
+                    Categories="categories"
+                    FuelTypes="fuelTypes"
+                    Transmissions="transmissions"
+                    PriceFloor="priceFloor"
+                    PriceCeiling="priceCeiling" />
+
+    <section class="results" aria-labelledby="results-title">
+        <div class="results-head">
+            <div>
+                <h2 id="results-title">Kiralanabilir araçlar</h2>
+                <p class="result-count" role="status" aria-live="polite">
+                    @if (IsLoading)
+                    {
+                        <span>Araçlar yükleniyor…</span>
+                    }
+                    else
+                    {
+                        <span><strong>@filtered.Count</strong> / @(Cars?.Count ?? 0) araç listeleniyor</span>
+                    }
+                </p>
+            </div>
+            <div class="sort">
+                <label for="sort-by">Sırala</label>
+                <select id="sort-by" class="form-control" value="@Filter.SortBy" @onchange="OnSortChanged">
+                    <option value="recommended">Önerilen</option>
+                    <option value="price-asc">Fiyat: düşükten yükseğe</option>
+                    <option value="price-desc">Fiyat: yüksekten düşüğe</option>
+                    <option value="name">Marka (A–Z)</option>
+                </select>
+            </div>
+        </div>
+
+        @if (IsLoading)
+        {
+            <div class="grid" aria-hidden="true">
+                @for (var i = 0; i < 6; i++)
+                {
+                    <div class="skeleton">
+                        <div class="sk-media"></div>
+                        <div class="sk-line w60"></div>
+                        <div class="sk-line w40"></div>
+                        <div class="sk-line w80"></div>
+                    </div>
+                }
+            </div>
+        }
+        else if (filtered.Count == 0)
+        {
+            <EmptyState IconName="search" Title="Bu ölçütlere uyan araç bulunamadı">
+                <p>Filtreleri gevşetmeyi veya fiyat aralığını genişletmeyi deneyin.</p>
+                <button type="button" class="btn btn-primary" @onclick="ClearFilters">
+                    <Icon Name="refresh" Size="16" /> Filtreleri temizle
+                </button>
+            </EmptyState>
+        }
+        else
+        {
+            <div class="grid">
+                @foreach (var car in filtered)
+                {
+                    <CarCard @key="car.Id" Car="car" OnRentRequested="OnRentRequested" />
+                }
+            </div>
+        }
+    </section>
+</div>
+
+@code {
+    [Parameter] public IReadOnlyList<Car>? Cars { get; set; }
+    [Parameter] public bool IsLoading { get; set; }
+    [Parameter, EditorRequired] public CarFilter Filter { get; set; } = new();
+    [Parameter] public EventCallback<CarFilter> FilterChanged { get; set; }
+    [Parameter] public EventCallback<Car> OnRentRequested { get; set; }
+
+    private List<Car> filtered = new();
+    private IReadOnlyList<string> brands = Array.Empty<string>();
+    private IReadOnlyList<string> categories = Array.Empty<string>();
+    private IReadOnlyList<string> fuelTypes = Array.Empty<string>();
+    private IReadOnlyList<string> transmissions = Array.Empty<string>();
+    private decimal priceFloor;
+    private decimal priceCeiling;
+
+    protected override void OnParametersSet()
+    {
+        var cars = Cars ?? Array.Empty<Car>();
+
+        // Filtre seçenekleri JSON'daki veriden türetilir
+        brands = cars.Select(c => c.Brand).Distinct().OrderBy(b => b).ToList();
+        categories = cars.Select(c => c.Category).Distinct().ToList();
+        fuelTypes = cars.Select(c => c.FuelType).Distinct().OrderBy(f => f).ToList();
+        transmissions = cars.Select(c => c.Transmission).Distinct().OrderBy(t => t).ToList();
+        priceFloor = cars.Count > 0 ? cars.Min(c => c.DailyPrice) : 0;
+        priceCeiling = cars.Count > 0 ? cars.Max(c => c.DailyPrice) : 0;
+
+        filtered = Filter.Apply(cars).ToList();
+    }
+
+    private Task OnSortChanged(ChangeEventArgs e) =>
+        FilterChanged.InvokeAsync(Filter.With(f => f.SortBy = e.Value?.ToString() ?? "recommended"));
+
+    private Task ClearFilters() => FilterChanged.InvokeAsync(new CarFilter { SortBy = Filter.SortBy });
+}

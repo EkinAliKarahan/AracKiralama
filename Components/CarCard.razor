@@ -1,0 +1,58 @@
+@* Tek bir aracın kartı. Seçim olayı EventCallback ile üst bileşene (CarList) iletilir. *@
+<article class="car-card @(Car.IsAvailable ? "" : "is-unavailable")" aria-labelledby="@TitleId">
+    <div class="media">
+        <img src="@(Car.ImageUrl ?? PlaceholderImage)"
+             alt="@($"{Car.Brand} {Car.Model} – {Car.Category} araç görseli")"
+             loading="lazy" width="400" height="240"
+             onerror="this.onerror=null;this.src='images/cars/placeholder.svg';" />
+        <span class="category">@Car.Category</span>
+        @if (!Car.IsAvailable)
+        {
+            <span class="status">Müsait değil</span>
+        }
+    </div>
+
+    <div class="body">
+        <h3 id="@TitleId" class="title">
+            @* lang="en": büyük harfe çevirirken "Hyundai" → "HYUNDAİ" olmasın *@
+            <span class="brand" lang="en">@Car.Brand</span>
+            <span class="model">@Car.Model</span>
+        </h3>
+
+        <ul class="specs" aria-label="Araç özellikleri">
+            <li><Icon Name="fuel" Size="16" /> @Car.FuelType</li>
+            <li><Icon Name="gear" Size="16" /> @Car.Transmission</li>
+            <li><Icon Name="users" Size="16" /> @Car.Seats kişi</li>
+        </ul>
+
+        <div class="footer">
+            <p class="price">
+                <span class="amount">@Fmt.Money(Car.DailyPrice)</span>
+                <span class="unit">/ gün</span>
+            </p>
+            <button type="button" class="btn btn-primary"
+                    disabled="@(!Car.IsAvailable)"
+                    aria-describedby="@(Car.IsAvailable ? null : NoteId)"
+                    @onclick="() => OnRentRequested.InvokeAsync(Car)">
+                Kirala <Icon Name="arrow-right" Size="16" />
+            </button>
+        </div>
+
+        @if (!Car.IsAvailable)
+        {
+            <p id="@NoteId" class="unavailable-note">
+                <Icon Name="alert" Size="15" /> Bu araç şu anda kiralamaya kapalı.
+            </p>
+        }
+    </div>
+</article>
+
+@code {
+    private const string PlaceholderImage = "images/cars/placeholder.svg";
+
+    [Parameter, EditorRequired] public Car Car { get; set; } = default!;
+    [Parameter] public EventCallback<Car> OnRentRequested { get; set; }
+
+    private string TitleId => $"car-title-{Car.Id}";
+    private string NoteId => $"car-note-{Car.Id}";
+}

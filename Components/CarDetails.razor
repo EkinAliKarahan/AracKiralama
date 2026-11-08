@@ -1,0 +1,44 @@
+@* Kiralama sayfasının üst kısmındaki araç detay kartı *@
+<section class="details card" aria-label="Araç bilgileri">
+    <div class="media">
+        <img src="@(Car.ImageUrl ?? "images/cars/placeholder.svg")"
+             alt="@($"{Car.Brand} {Car.Model} görseli")" width="400" height="240"
+             onerror="this.onerror=null;this.src='images/cars/placeholder.svg';" />
+    </div>
+    <div class="info">
+        <div class="tags">
+            <span class="tag">@Car.Category</span>
+            @if (Car.IsAvailable)
+            {
+                <span class="tag tag-ok"><Icon Name="check" Size="14" /> Müsait</span>
+            }
+            else
+            {
+                <span class="tag tag-off"><Icon Name="x" Size="14" /> Müsait değil</span>
+            }
+        </div>
+
+        <dl class="spec-grid">
+            <div>
+                <dt><Icon Name="fuel" Size="16" /> Yakıt</dt>
+                <dd>@Car.FuelType</dd>
+            </div>
+            <div>
+                <dt><Icon Name="gear" Size="16" /> Vites</dt>
+                <dd>@Car.Transmission</dd>
+            </div>
+            <div>
+                <dt><Icon Name="users" Size="16" /> Koltuk</dt>
+                <dd>@Car.Seats kişilik</dd>
+            </div>
+            <div>
+                <dt><Icon Name="tag" Size="16" /> Günlük ücret</dt>
+                <dd class="price">@Fmt.Money(Car.DailyPrice)</dd>
+            </div>
+        </dl>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public Car Car { get; set; } = default!;
+}

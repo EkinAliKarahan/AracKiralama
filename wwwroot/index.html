@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="AliCar – Blazor ile araç kiralama ve rezervasyon uygulaması" />
+    <title>AliCar · Araç Kiralama</title>
+    <base href="/" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/app.css" />
+    <!-- Bileşenlerin scoped CSS dosyaları (*.razor.css) derlemede bu pakette birleştirilir -->
+    <link rel="stylesheet" href="AracKiralama.styles.css" />
+    <link rel="icon" type="image/png" href="icon-192.png" />
+</head>
+
+<body>
+    <div id="app">
+        <svg class="loading-progress" aria-hidden="true">
+            <circle r="40%" cx="50%" cy="50%" />
+            <circle r="40%" cx="50%" cy="50%" />
+        </svg>
+        <div class="loading-progress-text" role="status"></div>
+    </div>
+
+    <div id="blazor-error-ui" role="alert">
+        Beklenmeyen bir hata oluştu.
+        <a href="." class="reload">Sayfayı yenile</a>
+        <button type="button" class="dismiss" aria-label="Kapat">✕</button>
+    </div>
+    <script src="_framework/blazor.webassembly.js"></script>
+</body>
+
+</html>

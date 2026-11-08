@@ -1,0 +1,154 @@
+@page "/my-bookings"
+@inject BookingService BookingService
+@inject CarService CarService
+
+<PageTitle>Rezervasyonlarım · AliCar</PageTitle>
+
+<header class="page-head">
+    <div>
+        <h1>Rezervasyonlarım</h1>
+        <p>Bu tarayıcıda oluşturduğunuz kayıtlar localStorage'da saklanır ve sayfa yenilendiğinde korunur.</p>
+    </div>
+    <a class="btn btn-primary" href="cars"><Icon Name="car" Size="18" /> Yeni rezervasyon</a>
+</header>
+
+@if (isLoading)
+{
+    <p class="loading" role="status">Rezervasyonlar yükleniyor…</p>
+}
+else if (bookings.Count == 0)
+{
+    <EmptyState IconName="receipt" Title="Henüz rezervasyonunuz yok">
+        <p>Bir araç seçip tarihleri belirleyerek ilk rezervasyonunuzu oluşturabilirsiniz.</p>
+        <a class="btn btn-primary" href="cars">Araçlara göz at</a>
+    </EmptyState>
+}
+else
+{
+    <section aria-label="Rezervasyon özeti">
+        <dl class="stats">
+            <div>
+                <dt>Toplam kayıt</dt>
+                <dd>@bookings.Count</dd>
+            </div>
+            <div class="upcoming">
+                <dt>Yaklaşan</dt>
+                <dd>@Count(BookingStatus.Upcoming)</dd>
+            </div>
+            <div class="ongoing">
+                <dt>Devam eden</dt>
+                <dd>@Count(BookingStatus.Ongoing)</dd>
+            </div>
+            <div class="cancelled">
+                <dt>İptal edilen</dt>
+                <dd>@Count(BookingStatus.Cancelled)</dd>
+            </div>
+            <div class="spend">
+                <dt>Aktif kayıtların toplamı</dt>
+                <dd>@Fmt.Money(bookings.Where(b => !b.IsCancelled).Sum(b => b.TotalAmount))</dd>
+            </div>
+        </dl>
+    </section>
+
+    @if (message is not null)
+    {
+        <div class="message">
+            <AlertBox Type="@messageType" OnDismiss="() => message = null">@message</AlertBox>
+        </div>
+    }
+
+    <div class="tabs" role="group" aria-label="Rezervasyonları süz">
+        @foreach (var tab in Tabs)
+        {
+            <button type="button" class="tab @(activeTab == tab.Key ? "active" : "")"
+                    aria-pressed="@(activeTab == tab.Key ? "true" : "false")"
+                    @onclick="() => activeTab = tab.Key">
+                @tab.Label <span class="tab-count">@TabCount(tab.Key)</span>
+            </button>
+        }
+    </div>
+
+    @if (Visible.Count == 0)
+    {
+        <p class="empty-tab">Bu grupta rezervasyon yok.</p>
+    }
+    else
+    {
+        <div class="list">
+            @foreach (var booking in Visible)
+            {
+                <BookingCard @key="booking.Id"
+                             Booking="booking"
+                             Car="@(cars.GetValueOrDefault(booking.CarId))"
+                             OnCancel="CancelAsync" />
+            }
+        </div>
+    }
+}
+
+@code {
+    private record Tab(string Key, string Label);
+
+    private static readonly Tab[] Tabs =
+    {
+        new("all", "Tümü"),
+        new("active", "Aktif"),
+        new("past", "Tamamlanan"),
+        new("cancelled", "İptal edilen"),
+    };
+
+    private List<CarBooking> bookings = new();
+    private Dictionary<string, Car> cars = new();
+    private bool isLoading = true;
+    private string activeTab = "all";
+    private string? message;
+    private string messageType = "success";
+
+    private List<CarBooking> Visible => bookings.Where(b => MatchesTab(b, activeTab)).ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        cars = (await CarService.GetCarsAsync()).ToDictionary(c => c.Id);
+        await LoadAsync();
+        isLoading = false;
+    }
+
+    private async Task LoadAsync()
+    {
+        bookings = (await BookingService.GetAllAsync())
+            .OrderByDescending(b => b.CreatedAt)
+            .ToList();
+    }
+
+    private async Task CancelAsync(CarBooking booking)
+    {
+        var ok = await BookingService.CancelAsync(booking.Id);
+        await LoadAsync();
+        if (ok)
+        {
+            messageType = "success";
+            message = $"{booking.Id} kodlu rezervasyon iptal edildi. Araç bu tarihler için yeniden kiralanabilir.";
+        }
+        else
+        {
+            messageType = "danger";
+            message = $"{booking.Id} iptal edilemedi. Başlamış kiralamalar iptal edilemez.";
+        }
+    }
+
+    private int Count(BookingStatus status) => bookings.Count(b => b.GetStatus(DateTime.Today) == status);
+
+    private int TabCount(string key) => bookings.Count(b => MatchesTab(b, key));
+
+    private static bool MatchesTab(CarBooking b, string key)
+    {
+        var status = b.GetStatus(DateTime.Today);
+        return key switch
+        {
+            "active" => status is BookingStatus.Upcoming or BookingStatus.Ongoing,
+            "past" => status == BookingStatus.Completed,
+            "cancelled" => status == BookingStatus.Cancelled,
+            _ => true
+        };
+    }
+}

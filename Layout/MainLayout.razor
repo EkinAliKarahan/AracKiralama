@@ -1,0 +1,18 @@
+﻿@inherits LayoutComponentBase
+
+<div class="app-shell">
+    <a class="skip-link" href="#main-content">İçeriğe geç</a>
+
+    <NavMenu />
+
+    <main id="main-content" class="page" tabindex="-1">
+        @Body
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>© 2026 AliCar · Blazor WebAssembly eğitim prototipi</span>
+            <span>Gerçek ödeme alınmaz; rezervasyonlar yalnızca bu tarayıcıda saklanır.</span>
+        </div>
+    </footer>
+</div>

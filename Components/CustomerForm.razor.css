@@ -1,0 +1,166 @@
+.customer {
+    padding: 1.25rem;
+    scroll-margin-top: 90px;
+    animation: slide-in .3s ease-out;
+}
+
+.block-head {
+    display: flex;
+    align-items: flex-start;
+    gap: .85rem;
+    margin-bottom: 1.1rem;
+}
+
+.block-head h2 { font-size: 1.1rem; }
+
+.block-head p {
+    margin-top: .15rem;
+    color: var(--muted);
+    font-size: .9rem;
+}
+
+.step {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    font-weight: 800;
+}
+
+.req { color: var(--danger); font-weight: 800; }
+
+.form-alert { margin-bottom: 1rem; }
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+    min-width: 0;
+}
+
+.field.full { grid-column: 1 / -1; }
+
+.field > label {
+    color: var(--text-2);
+    font-size: .88rem;
+    font-weight: 700;
+}
+
+.input-wrap {
+    position: relative;
+    color: var(--muted);
+}
+
+.input-wrap ::deep .icon {
+    position: absolute;
+    left: .8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+/* InputText alt bileşen olduğu için ::deep gerekir */
+.input-wrap ::deep input { padding-left: 2.5rem; }
+
+/* Blazor'un eklediği doğrulama sınıfları */
+.field ::deep input.modified.valid { border-color: var(--success); }
+
+.field ::deep input.invalid,
+.field ::deep input[aria-invalid="true"] {
+    border-color: var(--danger);
+    background: #fffafa;
+}
+
+.field ::deep input.invalid:focus { box-shadow: 0 0 0 4px rgba(187, 31, 40, .2); }
+
+.field ::deep .validation-message {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    color: var(--danger);
+    font-size: .84rem;
+    font-weight: 600;
+}
+
+.field ::deep .validation-message::before {
+    content: "!";
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--danger);
+    color: #fff;
+    font-size: .7rem;
+    font-weight: 800;
+}
+
+/* Bir alan için aynı anda birden çok kural bozulursa yalnızca ilk mesajı göster */
+.field ::deep .validation-message ~ .validation-message { display: none; }
+
+.terms {
+    display: flex;
+    align-items: flex-start;
+    gap: .65rem;
+    padding: .8rem .9rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface-2);
+}
+
+.terms ::deep input[type="checkbox"] {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin: .1rem 0 0;
+    accent-color: var(--primary);
+    cursor: pointer;
+}
+
+.terms label {
+    color: var(--text-2);
+    font-size: .9rem;
+    cursor: pointer;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: .6rem;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.spinner {
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid rgba(255, 255, 255, .4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@keyframes slide-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 640px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .actions { flex-direction: column-reverse; }
+    .actions .btn { width: 100%; }
+}

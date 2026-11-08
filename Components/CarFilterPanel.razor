@@ -1,0 +1,139 @@
+@using System.Globalization
+@* Filtre paneli. Her değişiklikte filtrenin yeni bir kopyası FilterChanged ile üst bileşene gönderilir. *@
+<aside class="filter-panel card @(isOpen ? "is-open" : "")" aria-labelledby="filter-title">
+    <div class="panel-head">
+        <h2 id="filter-title">
+            <Icon Name="filter" /> Filtreler
+            @if (Filter.ActiveCount > 0)
+            {
+                <span class="count">@Filter.ActiveCount<span class="sr-only"> aktif filtre</span></span>
+            }
+        </h2>
+        <button type="button" class="toggle" aria-expanded="@(isOpen ? "true" : "false")" aria-controls="filter-body"
+                @onclick="() => isOpen = !isOpen">
+            @(isOpen ? "Gizle" : "Göster")
+            <Icon Name="chevron-down" Size="16" />
+        </button>
+    </div>
+
+    <div id="filter-body" class="panel-body">
+        <fieldset class="group">
+            <legend>Kategori</legend>
+            <div class="chips">
+                <button type="button" class="chip @(Filter.Category == "" ? "active" : "")"
+                        aria-pressed="@(Filter.Category == "" ? "true" : "false")"
+                        @onclick='() => Update(f => f.Category = "")'>Tümü</button>
+                @foreach (var category in Categories)
+                {
+                    <button type="button" class="chip @(Filter.Category == category ? "active" : "")"
+                            aria-pressed="@(Filter.Category == category ? "true" : "false")"
+                            @onclick="() => Update(f => f.Category = category)">@category</button>
+                }
+            </div>
+        </fieldset>
+
+        <div class="group">
+            <label for="f-brand">Marka</label>
+            <select id="f-brand" class="form-control" value="@Filter.Brand"
+                    @onchange='e => Update(f => f.Brand = e.Value?.ToString() ?? "")'>
+                <option value="">Tüm markalar</option>
+                @foreach (var brand in Brands)
+                {
+                    <option value="@brand">@brand</option>
+                }
+            </select>
+        </div>
+
+        <div class="group two-col">
+            <div>
+                <label for="f-fuel">Yakıt</label>
+                <select id="f-fuel" class="form-control" value="@Filter.FuelType"
+                        @onchange='e => Update(f => f.FuelType = e.Value?.ToString() ?? "")'>
+                    <option value="">Tümü</option>
+                    @foreach (var fuel in FuelTypes)
+                    {
+                        <option value="@fuel">@fuel</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label for="f-gear">Vites</label>
+                <select id="f-gear" class="form-control" value="@Filter.Transmission"
+                        @onchange='e => Update(f => f.Transmission = e.Value?.ToString() ?? "")'>
+                    <option value="">Tümü</option>
+                    @foreach (var gear in Transmissions)
+                    {
+                        <option value="@gear">@gear</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <fieldset class="group">
+            <legend>Günlük fiyat aralığı (₺)</legend>
+            <div class="price-row">
+                <div>
+                    <label for="f-min" class="sub-label">En düşük</label>
+                    <input id="f-min" class="form-control" type="number" inputmode="numeric" min="0" step="100"
+                           placeholder="@PriceFloor.ToString("0", CultureInfo.InvariantCulture)"
+                           value="@ToInput(Filter.MinPrice)" @oninput="e => UpdatePrice(e, isMin: true)"
+                           aria-invalid="@(Filter.HasInvalidPriceRange ? "true" : "false")" />
+                </div>
+                <span class="dash" aria-hidden="true">–</span>
+                <div>
+                    <label for="f-max" class="sub-label">En yüksek</label>
+                    <input id="f-max" class="form-control" type="number" inputmode="numeric" min="0" step="100"
+                           placeholder="@PriceCeiling.ToString("0", CultureInfo.InvariantCulture)"
+                           value="@ToInput(Filter.MaxPrice)" @oninput="e => UpdatePrice(e, isMin: false)"
+                           aria-invalid="@(Filter.HasInvalidPriceRange ? "true" : "false")" />
+                </div>
+            </div>
+            @if (Filter.HasInvalidPriceRange)
+            {
+                <p class="field-warning" role="alert">
+                    <Icon Name="alert" Size="15" /> En düşük fiyat, en yüksek fiyattan büyük olamaz.
+                </p>
+            }
+        </fieldset>
+
+        <label class="switch">
+            <input type="checkbox" role="switch" checked="@Filter.OnlyAvailable"
+                   @onchange="e => Update(f => f.OnlyAvailable = e.Value is true)" />
+            <span class="track" aria-hidden="true"></span>
+            <span>Yalnızca müsait araçlar</span>
+        </label>
+
+        <button type="button" class="btn btn-secondary btn-block" disabled="@(Filter.ActiveCount == 0)"
+                @onclick="Reset">
+            <Icon Name="refresh" Size="16" /> Filtreleri temizle
+        </button>
+    </div>
+</aside>
+
+@code {
+    [Parameter, EditorRequired] public CarFilter Filter { get; set; } = new();
+    [Parameter] public EventCallback<CarFilter> FilterChanged { get; set; }
+
+    [Parameter] public IReadOnlyList<string> Brands { get; set; } = Array.Empty<string>();
+    [Parameter] public IReadOnlyList<string> Categories { get; set; } = Array.Empty<string>();
+    [Parameter] public IReadOnlyList<string> FuelTypes { get; set; } = Array.Empty<string>();
+    [Parameter] public IReadOnlyList<string> Transmissions { get; set; } = Array.Empty<string>();
+    [Parameter] public decimal PriceFloor { get; set; }
+    [Parameter] public decimal PriceCeiling { get; set; }
+
+    private bool isOpen;
+
+    private Task Update(Action<CarFilter> change) => FilterChanged.InvokeAsync(Filter.With(change));
+
+    private Task Reset() => FilterChanged.InvokeAsync(new CarFilter { SortBy = Filter.SortBy });
+
+    private Task UpdatePrice(ChangeEventArgs e, bool isMin)
+    {
+        decimal? value = decimal.TryParse(e.Value?.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var v) && v >= 0
+            ? v
+            : null;
+        return Update(f => { if (isMin) f.MinPrice = value; else f.MaxPrice = value; });
+    }
+
+    private static string? ToInput(decimal? value) => value?.ToString("0", CultureInfo.InvariantCulture);
+}

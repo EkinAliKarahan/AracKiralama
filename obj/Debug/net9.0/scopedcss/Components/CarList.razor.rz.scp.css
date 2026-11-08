@@ -1,0 +1,92 @@
+.car-list[b-qg4tl4c0kc] {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    align-items: start;
+    gap: 1.5rem;
+}
+
+.results[b-qg4tl4c0kc] {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    min-width: 0;
+}
+
+.results-head[b-qg4tl4c0kc] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: .75rem 1rem;
+}
+
+.results-head h2[b-qg4tl4c0kc] { font-size: 1.3rem; }
+
+.result-count[b-qg4tl4c0kc] {
+    margin-top: .2rem;
+    color: var(--muted);
+    font-size: .9rem;
+}
+
+.result-count strong[b-qg4tl4c0kc] { color: var(--text); }
+
+.sort[b-qg4tl4c0kc] {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.sort label[b-qg4tl4c0kc] {
+    color: var(--text-2);
+    font-size: .85rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.sort select[b-qg4tl4c0kc] { min-width: 220px; }
+
+.grid[b-qg4tl4c0kc] {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.1rem;
+}
+
+/* Yükleme iskeleti */
+.skeleton[b-qg4tl4c0kc] {
+    display: flex;
+    flex-direction: column;
+    gap: .7rem;
+    padding-bottom: 1.2rem;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+}
+
+.sk-media[b-qg4tl4c0kc],
+.sk-line[b-qg4tl4c0kc] {
+    background: linear-gradient(90deg, #eceff4 25%, #f6f7fa 50%, #eceff4 75%);
+    background-size: 200% 100%;
+    animation: shimmer-b-qg4tl4c0kc 1.2s infinite linear;
+}
+
+.sk-media[b-qg4tl4c0kc] { aspect-ratio: 5 / 3; }
+.sk-line[b-qg4tl4c0kc] { height: 12px; margin: 0 1.1rem; border-radius: 6px; }
+.w40[b-qg4tl4c0kc] { width: 40%; }
+.w60[b-qg4tl4c0kc] { width: 60%; }
+.w80[b-qg4tl4c0kc] { width: 80%; }
+
+@keyframes shimmer-b-qg4tl4c0kc {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+}
+
+@media (max-width: 900px) {
+    .car-list[b-qg4tl4c0kc] { grid-template-columns: 1fr; gap: 1rem; }
+}
+
+@media (max-width: 560px) {
+    .sort[b-qg4tl4c0kc] { width: 100%; }
+    .sort select[b-qg4tl4c0kc] { min-width: 0; flex: 1; }
+    .grid[b-qg4tl4c0kc] { grid-template-columns: 1fr; }
+}

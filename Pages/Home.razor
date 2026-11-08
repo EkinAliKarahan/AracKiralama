@@ -1,0 +1,10 @@
+﻿@page "/"
+@inject NavigationManager Nav
+
+@* Ana adres doğrudan araç listesine yönlendirir *@
+<PageTitle>AliCar</PageTitle>
+<h1 class="sr-only">AliCar</h1>
+
+@code {
+    protected override void OnInitialized() => Nav.NavigateTo("cars", replace: true);
+}

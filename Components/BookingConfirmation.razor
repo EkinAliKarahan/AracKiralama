@@ -1,0 +1,100 @@
+@* Rezervasyon onay ekranı: kod, araç, tarihler, hizmetler ve toplam tutar *@
+<article class="confirm card" aria-labelledby="confirm-title">
+    <header class="hero @(Booking.IsCancelled ? "is-cancelled" : "")">
+        <span class="hero-icon"><Icon Name="@(Booking.IsCancelled ? "x-circle" : "check-circle")" Size="34" /></span>
+        <h1 id="confirm-title">
+            @(Booking.IsCancelled ? "Bu rezervasyon iptal edildi" : (IsNew ? "Rezervasyonunuz oluşturuldu!" : "Rezervasyon detayı"))
+        </h1>
+        <p>Rezervasyon kodunuz</p>
+        <p class="code">@Booking.Id</p>
+        @if (!Booking.IsCancelled)
+        {
+            <p class="sub">Onay bilgileri <strong>@Booking.Email</strong> adresine gönderilmiş gibi kabul edilir (prototip).</p>
+        }
+    </header>
+
+    <div class="content">
+        <div class="car-row">
+            <img src="@(Car?.ImageUrl ?? "images/cars/placeholder.svg")" alt="@(Car is null ? "" : $"{Car.DisplayName} görseli")" width="160" height="96" />
+            <div>
+                <p class="car-name">@(Car?.DisplayName ?? Booking.CarId)</p>
+                @if (Car is not null)
+                {
+                    <p class="muted">@Car.Category · @Car.Transmission · @Car.FuelType · @Car.Seats kişi</p>
+                }
+            </div>
+            <span class="status status-@status.ToCss()">@status.ToLabel()</span>
+        </div>
+
+        <dl class="grid">
+            <div>
+                <dt><Icon Name="calendar" Size="16" /> Teslim alma</dt>
+                <dd>@Fmt.DateWithDay(Booking.PickupDate)</dd>
+            </div>
+            <div>
+                <dt><Icon Name="calendar" Size="16" /> İade</dt>
+                <dd>@Fmt.DateWithDay(Booking.ReturnDate)</dd>
+            </div>
+            <div>
+                <dt><Icon Name="clock" Size="16" /> Süre</dt>
+                <dd>@days gün</dd>
+            </div>
+            <div>
+                <dt><Icon Name="user" Size="16" /> Müşteri</dt>
+                <dd>@Booking.CustomerName</dd>
+            </div>
+            <div>
+                <dt><Icon Name="mail" Size="16" /> E-posta</dt>
+                <dd class="break">@Booking.Email</dd>
+            </div>
+            <div>
+                <dt><Icon Name="phone" Size="16" /> Telefon</dt>
+                <dd>@Booking.Phone</dd>
+            </div>
+        </dl>
+
+        <table class="lines">
+            <caption>Ücret dökümü</caption>
+            <tbody>
+                <tr>
+                    <th scope="row">Araç kirası <span>@Fmt.Money(Car?.DailyPrice ?? 0) × @days gün</span></th>
+                    <td>@Fmt.Money((Car?.DailyPrice ?? 0) * days)</td>
+                </tr>
+                @foreach (var extra in extras)
+                {
+                    <tr>
+                        <th scope="row">@extra.Name <span>@Fmt.Money(extra.DailyPrice) × @days gün</span></th>
+                        <td>@Fmt.Money(extra.DailyPrice * days)</td>
+                    </tr>
+                }
+                @if (extras.Count == 0)
+                {
+                    <tr class="muted-row"><th scope="row">Ek hizmet yok</th><td>—</td></tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th scope="row">Toplam tutar</th>
+                    <td>@Fmt.Money(Booking.TotalAmount)</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</article>
+
+@code {
+    [Parameter, EditorRequired] public CarBooking Booking { get; set; } = default!;
+    [Parameter] public Car? Car { get; set; }
+    [Parameter] public bool IsNew { get; set; }
+
+    private int days;
+    private IReadOnlyList<ExtraService> extras = Array.Empty<ExtraService>();
+    private BookingStatus status;
+
+    protected override void OnParametersSet()
+    {
+        days = RentalRules.CalculateDays(Booking.PickupDate, Booking.ReturnDate);
+        extras = ExtraCatalog.GetByIds(Booking.ExtraIds);
+        status = Booking.GetStatus(DateTime.Today);
+    }
+}

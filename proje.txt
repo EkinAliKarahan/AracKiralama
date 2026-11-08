@@ -1,0 +1,81 @@
+ARAÇ KİRALAMA VE REZERVASYON UYGULAMASI (AliCar)
+Blazor WebAssembly (.NET 9) – Proje Dokümantasyonu
+==================================================
+
+PROJE ÜYELERİ
+-------------
+1) Öğrenci No: 1230505045   Ad Soyad: Ekin Ali Karahan
+
+
+ÜYELERİN GÖREVLERİ
+------------------
+Ekin Ali Karahan (1230505045) – Proje tek kişilik olup tüm görevler tarafımdan yapılmıştır:
+   - cars.json veri dosyasının hazırlanması, Car / CarBooking / CustomerInfo modelleri
+   - CarService (HttpClient ile JSON okuma), BookingService (localStorage), RentalState (scoped durum)
+   - /cars, /cars/{id}/rent, /my-bookings ve rezervasyon onay sayfaları
+   - CarList, CarFilterPanel, RentalOptions, RentalSummary, CustomerForm ve diğer bileşenler
+   - Tarih doğrulama, gün sayısı, fiyat hesaplama, çakışma kontrolü ve iptal kuralları
+   - Form doğrulama (EditForm + DataAnnotations)
+   - Scoped CSS ile tasarım, responsive düzen ve erişilebilirlik
+   - Dokümantasyon ve çalıştırma/anlatım videosu
+
+
+ÇALIŞTIRMA
+----------
+Gereksinim: .NET 9 SDK
+    cd AracKiralama
+    dotnet run
+Tarayıcıda: http://localhost:5154
+
+
+ÖZELLİKLER 
+--------------------------------------------
+1. JSON'dan veri okuma ve servis mimarisi
+   - wwwroot/data/cars.json: 15 araç, 4 kategori (Ekonomik, SUV, Lüks, Minivan).
+   - Services/CarService.cs: HttpClient.GetFromJsonAsync ile asenkron yükleme, bellekte önbellek.
+   - Program.cs: HttpClient, CarService, BookingService, RentalState DI kaydı (AddScoped).
+
+2. Bileşen yapısı ve veri akışı
+   - CarList, CarCard, CarFilterPanel, CarDetails, RentalOptions, RentalSummary,
+     CustomerForm, BookingConfirmation, BookingCard, AlertBox, EmptyState, Icon.
+   - Veri yukarıdan aşağı [Parameter], olaylar aşağıdan yukarı EventCallback ile akar:
+     CarCard --OnRentRequested--> CarList --> Cars sayfası
+     CarFilterPanel --FilterChanged(CarFilter)--> CarList --> Cars sayfası
+     RentalOptions --PickupDateChanged / ReturnDateChanged / OnExtraToggled--> Rent sayfası
+     RentalSummary --OnCompleteRequested--> Rent sayfası
+     CustomerForm --OnValidSubmit(CustomerInfo) / OnCancel--> Rent sayfası
+     BookingCard --OnCancel(CarBooking)--> MyBookings sayfası
+
+3. Kiralama ve dinamik fiyat hesaplama
+   - Teslim tarihi geçmişte olamaz; iade tarihi teslimden sonra olmalı; en fazla 30 gün.
+   - Gün sayısı = iade − teslim (10–13 Kasım = 3 gün).
+   - Toplam = gün × (araç günlük ücreti + seçilen hizmetlerin günlük ücreti).
+   - isAvailable=false araçlarda "Kirala" butonu pasif ve uyarı gösterilir.
+   - Aynı araç için aktif rezervasyonlarla tarih çakışması anında gösterilir ve kayıt engellenir.
+     (İade günü yeni kiralamanın teslim günü olabilir: 10–13 ve 13–15 çakışmaz.)
+   - Henüz başlamamış (teslim tarihi gelmemiş) rezervasyonlar iptal edilebilir.
+
+4. Form doğrulama
+   - Models/CustomerInfo.cs: [Required], [StringLength], [RegularExpression],
+     [EmailAddress], [Phone], [Range] (koşulların kabulü).
+   - EditForm + DataAnnotationsValidator + ValidationMessage; hatalı alanlar kırmızı çerçeve ile işaretlenir.
+
+5. Durum yönetimi
+   - Services/RentalState.cs (scoped): seçilen araç, tarihler, ek hizmetler ve liste filtresi
+     sayfalar arasında korunur (ör. listeye dönünce filtreler kaybolmaz).
+   - Services/BookingService.cs: rezervasyonlar ve iptal durumu localStorage'da
+     ("alicar.bookings.v1" anahtarı) JSON olarak saklanır; sayfa yenilense de korunur.
+   - Rezervasyon kodu: CAR-{yıl}-{sıra}, ör. CAR-2026-101.
+
+6. Tasarım ve scoped CSS
+   - Her bileşen ve sayfanın kendi .razor.css dosyası vardır (bileşen bazlı stil).
+   - wwwroot/css/app.css yalnızca renk/boyut değişkenleri ve ortak buton/form temellerini içerir.
+   - Responsive düzen (masaüstü, tablet, mobil), klavye odak stilleri, "içeriğe geç" bağlantısı,
+     aria-live ile anlık tutar duyurusu, label/for eşleşmeleri, anlaşılır uyarı kutuları.
+
+
+BİLİNEN SINIRLAMALAR
+--------------------
+- Gerçek ödeme ve veritabanı yoktur; tek tarayıcıda çalışan bir eğitim prototipidir.
+- Çakışma kontrolü yalnızca aynı tarayıcıda kayıtlı rezervasyonlar için yapılır.
+- Araç görselleri uygulama için üretilmiş basit SVG çizimlerdir.

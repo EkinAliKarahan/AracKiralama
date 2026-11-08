@@ -1,0 +1,35 @@
+@* Bilgi / başarı / uyarı / hata mesajları için yeniden kullanılabilir kutu *@
+<div class="alert alert-@Type" role="@(IsUrgent ? "alert" : "status")">
+    <span class="alert-icon"><Icon Name="@IconName" Size="20" /></span>
+    <div class="alert-content">
+        @if (!string.IsNullOrEmpty(Title))
+        {
+            <p class="alert-title">@Title</p>
+        }
+        <div class="alert-body">@ChildContent</div>
+    </div>
+    @if (OnDismiss.HasDelegate)
+    {
+        <button type="button" class="alert-close" aria-label="Mesajı kapat" @onclick="OnDismiss">
+            <Icon Name="x" />
+        </button>
+    }
+</div>
+
+@code {
+    /// <summary>info | success | warning | danger</summary>
+    [Parameter] public string Type { get; set; } = "info";
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public EventCallback OnDismiss { get; set; }
+
+    private bool IsUrgent => Type is "warning" or "danger";
+
+    private string IconName => Type switch
+    {
+        "success" => "check-circle",
+        "warning" => "alert",
+        "danger" => "x-circle",
+        _ => "info"
+    };
+}

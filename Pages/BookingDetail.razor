@@ -1,0 +1,48 @@
+@page "/booking/{Code}"
+@inject BookingService BookingService
+@inject CarService CarService
+
+<PageTitle>@(booking is null ? "Rezervasyon" : booking.Id) · AliCar</PageTitle>
+
+@if (isLoading)
+{
+    <p class="loading" role="status">Rezervasyon yükleniyor…</p>
+}
+else if (booking is null)
+{
+    <EmptyState IconName="search" Title="Rezervasyon bulunamadı">
+        <p>“@Code” kodlu bir rezervasyon bu tarayıcıda kayıtlı değil.</p>
+        <a class="btn btn-primary" href="my-bookings">Rezervasyonlarıma git</a>
+    </EmptyState>
+}
+else
+{
+    <div class="wrap">
+        <BookingConfirmation Booking="booking" Car="car" IsNew="IsNew" />
+
+        <div class="actions">
+            <a class="btn btn-secondary" href="cars"><Icon Name="car" Size="18" /> Yeni araç kirala</a>
+            <a class="btn btn-primary" href="my-bookings"><Icon Name="receipt" Size="18" /> Rezervasyonlarım</a>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string Code { get; set; } = "";
+
+    // ?new=1 ile gelindiyse "oluşturuldu" mesajı gösterilir
+    [SupplyParameterFromQuery(Name = "new")] public int? New { get; set; }
+
+    private bool IsNew => New == 1;
+    private CarBooking? booking;
+    private Car? car;
+    private bool isLoading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        isLoading = true;
+        booking = await BookingService.GetByIdAsync(Code);
+        car = booking is null ? null : await CarService.GetCarByIdAsync(booking.CarId);
+        isLoading = false;
+    }
+}

@@ -1,0 +1,226 @@
+@page "/cars/{Id}/rent"
+@implements IDisposable
+@inject CarService CarService
+@inject BookingService BookingService
+@inject RentalState State
+@inject NavigationManager Nav
+
+<PageTitle>@(car is null ? "Araç kirala" : $"{car.DisplayName} kirala") · AliCar</PageTitle>
+
+<nav class="back" aria-label="Sayfa konumu">
+    <a href="cars"><Icon Name="arrow-left" Size="16" /> Araç listesine dön</a>
+</nav>
+
+@if (isLoading)
+{
+    <div class="loading" role="status">
+        <span class="spinner" aria-hidden="true"></span> Araç bilgileri yükleniyor…
+    </div>
+}
+else if (car is null)
+{
+    <EmptyState IconName="search" Title="Araç bulunamadı">
+        <p>“@Id” kodlu bir araç bulunamadı. Bağlantı hatalı olabilir.</p>
+        <a class="btn btn-primary" href="cars">Araç listesine dön</a>
+    </EmptyState>
+}
+else
+{
+    <header class="page-head">
+        <h1>@car.Brand <span>@car.Model</span></h1>
+        <p>Tarih ve ek hizmetleri seçin, fiyatı anında görün.</p>
+    </header>
+
+    <div class="layout">
+        <div class="main">
+            <CarDetails Car="car" />
+
+            @if (!car.IsAvailable)
+            {
+                <AlertBox Type="warning" Title="Bu araç şu anda kiralanamaz">
+                    Araç bakımda veya kullanımda olduğu için kiralama işlemi devre dışı bırakıldı.
+                    Lütfen <a href="cars">başka bir araç</a> seçin.
+                </AlertBox>
+            }
+
+            <RentalOptions PickupDate="State.PickupDate"
+                           PickupDateChanged="OnPickupChanged"
+                           ReturnDate="State.ReturnDate"
+                           ReturnDateChanged="OnReturnChanged"
+                           Days="State.RentalDays"
+                           DateErrors="State.DateErrors"
+                           Extras="ExtraCatalog.All"
+                           SelectedExtraIds="State.SelectedExtraIds"
+                           OnExtraToggled="OnExtraToggled"
+                           Disabled="!car.IsAvailable" />
+
+            @if (conflict is not null && State.HasValidDates)
+            {
+                <AlertBox Type="danger" Title="Tarih çakışması">
+                    Bu araç için <strong>@conflict.Id</strong> kodlu aktif rezervasyonunuz
+                    (@Fmt.Range(conflict.PickupDate, conflict.ReturnDate)) seçtiğiniz tarihlerle çakışıyor.
+                    Lütfen farklı tarihler seçin.
+                </AlertBox>
+            }
+
+            @if (activeBookings.Count > 0)
+            {
+                <div class="booked card">
+                    <h2><Icon Name="calendar" Size="16" /> Bu araç için bu tarayıcıdaki dolu tarihler</h2>
+                    <ul>
+                        @foreach (var b in activeBookings)
+                        {
+                            <li class="@(b.Id == conflict?.Id ? "is-conflict" : "")">
+                                @Fmt.Range(b.PickupDate, b.ReturnDate) <span>@b.Id</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            @if (showForm)
+            {
+                <CustomerForm OnValidSubmit="SubmitAsync"
+                              OnCancel="CloseForm"
+                              IsSubmitting="isSubmitting"
+                              ErrorMessage="@submitError" />
+            }
+        </div>
+
+        <aside class="side" aria-label="Fiyat özeti">
+            <RentalSummary Car="car"
+                           PickupDate="State.PickupDate"
+                           ReturnDate="State.ReturnDate"
+                           Days="State.RentalDays"
+                           SelectedExtras="State.SelectedExtras"
+                           CanComplete="CanComplete"
+                           BlockReason="@BlockReason"
+                           IsFormOpen="showForm"
+                           OnCompleteRequested="OpenForm" />
+        </aside>
+    </div>
+}
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+
+    private Car? car;
+    private bool isLoading = true;
+    private List<CarBooking> activeBookings = new();
+    private CarBooking? conflict;
+    private bool showForm;
+    private bool isSubmitting;
+    private string? submitError;
+
+    private bool CanComplete => car is { IsAvailable: true } && State.HasValidDates && conflict is null;
+
+    private string? BlockReason =>
+        car is null ? null :
+        !car.IsAvailable ? "Araç şu anda müsait değil; rezervasyon yapılamaz." :
+        !State.HasValidDates ? "Rezervasyon için geçerli bir tarih aralığı seçin." :
+        conflict is not null ? "Seçilen tarihler mevcut bir rezervasyonla çakışıyor." :
+        null;
+
+    protected override void OnInitialized() => State.OnChange += HandleStateChanged;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        isLoading = true;
+        showForm = false;
+        submitError = null;
+
+        // Liste sayfasından gelindiyse araç scoped serviste hazırdır; doğrudan URL ile gelindiyse JSON'dan yüklenir
+        car = string.Equals(State.SelectedCar?.Id, Id, StringComparison.OrdinalIgnoreCase)
+            ? State.SelectedCar
+            : await CarService.GetCarByIdAsync(Id);
+
+        if (car is not null)
+        {
+            if (!ReferenceEquals(State.SelectedCar, car)) State.SelectCar(car);
+            await RefreshBookingsAsync();
+        }
+
+        isLoading = false;
+    }
+
+    private async Task RefreshBookingsAsync()
+    {
+        if (car is null) return;
+        activeBookings = await BookingService.GetActiveForCarAsync(car.Id);
+        conflict = State.HasValidDates
+            ? BookingService.FindConflict(activeBookings, car.Id, State.PickupDate, State.ReturnDate)
+            : null;
+    }
+
+    private async Task OnPickupChanged(DateTime date)
+    {
+        State.SetPickupDate(date);
+        submitError = null;
+        await RefreshBookingsAsync();
+    }
+
+    private async Task OnReturnChanged(DateTime date)
+    {
+        State.SetReturnDate(date);
+        submitError = null;
+        await RefreshBookingsAsync();
+    }
+
+    private void OnExtraToggled(RentalOptions.ExtraToggle toggle) => State.SetExtra(toggle.ExtraId, toggle.IsSelected);
+
+    private void OpenForm()
+    {
+        if (!CanComplete) return;
+        submitError = null;
+        showForm = true;
+    }
+
+    private void CloseForm()
+    {
+        showForm = false;
+        submitError = null;
+    }
+
+    private async Task SubmitAsync(CustomerInfo customer)
+    {
+        if (car is null) return;
+        await RefreshBookingsAsync();
+        if (!CanComplete)
+        {
+            submitError = BlockReason;
+            return;
+        }
+
+        isSubmitting = true;
+        submitError = null;
+
+        var booking = new CarBooking
+        {
+            CarId = car.Id,
+            CustomerName = customer.FullName!.Trim(),
+            Email = customer.Email!.Trim(),
+            Phone = customer.Phone!.Trim(),
+            PickupDate = State.PickupDate,
+            ReturnDate = State.ReturnDate,
+            ExtraIds = State.SelectedExtraIds.ToList(),
+            TotalAmount = State.TotalAmount,
+        };
+
+        var result = await BookingService.CreateAsync(booking);
+        isSubmitting = false;
+
+        if (!result.Success || result.Booking is null)
+        {
+            submitError = result.Error;
+            conflict = result.Conflict ?? conflict;
+            return;
+        }
+
+        State.ClearAfterBooking();
+        Nav.NavigateTo($"booking/{result.Booking.Id}?new=1");
+    }
+
+    private void HandleStateChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => State.OnChange -= HandleStateChanged;
+}
